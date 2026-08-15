@@ -366,6 +366,19 @@ async function translateWithLlm({
     if (error instanceof TranslationProviderError) {
       throw error;
     }
+    const causeCode =
+      error &&
+      typeof error === 'object' &&
+      'cause' in error &&
+      error.cause &&
+      typeof error.cause === 'object' &&
+      'code' in error.cause
+        ? String(error.cause.code)
+        : undefined;
+    console.error('LLM translation request failed:', {
+      name: error instanceof Error ? error.name : 'UnknownError',
+      causeCode,
+    });
     throw new TranslationProviderError(
       'LLM translation request failed',
       'llm',
