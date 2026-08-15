@@ -269,6 +269,39 @@ describe('POST /api/translate', () => {
     });
   });
 
+  it('retries one transient LLM network failure', async () => {
+    vi.stubEnv('LLM_API_KEY', 'llm-test-key');
+    vi.stubEnv('LLM_BASE_URL', 'https://api.ppio.com/openai');
+    vi.stubEnv('LLM_MODEL', 'deepseek/deepseek-v3-0324');
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockRejectedValueOnce(new TypeError('fetch failed'))
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            choices: [
+              {
+                message: { content: 'おはようございます。' },
+                finish_reason: 'stop',
+              },
+            ],
+          }),
+        }),
+    );
+
+    const response = await callPost({
+      text: 'Good morning.',
+      sourceLanguage: 'en',
+      targetLanguage: 'ja',
+    });
+
+    expect(response.status).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it('maps LLM rate-limit errors without exposing provider details', async () => {
     vi.stubEnv('LLM_API_KEY', 'llm-test-key');
     vi.stubEnv('LLM_BASE_URL', 'https://api.ppio.com/openai');

@@ -297,9 +297,9 @@ async function translateWithLlm({
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
+  const timeout = setTimeout(() => controller.abort(), 25_000);
   try {
-    const response = await fetch(getLlmEndpoint(baseUrl), {
+    const requestInit: RequestInit = {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -323,7 +323,16 @@ async function translateWithLlm({
         ],
       }),
       signal: controller.signal,
-    });
+    };
+    let response: Response;
+    try {
+      response = await fetch(getLlmEndpoint(baseUrl), requestInit);
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw error;
+      }
+      response = await fetch(getLlmEndpoint(baseUrl), requestInit);
+    }
 
     if (!response.ok) {
       throw new TranslationProviderError(
