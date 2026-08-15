@@ -2,6 +2,9 @@
   "name": "kanadojo",
   "version": "0.1.18",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "prepare": "husky",
     "predev": "node scripts/generate-commit-info.mjs",

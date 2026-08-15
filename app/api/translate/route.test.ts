@@ -109,6 +109,9 @@ describe('POST /api/translate', () => {
     vi.stubEnv('AZURE_TRANSLATOR_KEY', 'azure-test-key');
     vi.stubEnv('GOOGLE_TRANSLATE_API_KEY', 'test-key');
     vi.stubEnv('AWS_REGION', 'eu-central-1');
+    vi.stubEnv('LLM_API_KEY', '');
+    vi.stubEnv('LLM_BASE_URL', '');
+    vi.stubEnv('LLM_MODEL', '');
     vi.stubEnv('TURNSTILE_SECRET_KEY', '');
 
     mockCheckTranslateRateLimit.mockResolvedValue(allowedRateLimitResult());
@@ -212,16 +215,97 @@ describe('POST /api/translate', () => {
     const data = (await response.json()) as { provider: string };
     expect(data.provider).toBe('azure');
     expect(mockCheckTranslateRateLimit).toHaveBeenCalledWith('127.0.0.1');
-    expect(mockCheckTranslateUsageLimit).toHaveBeenCalledWith(
-      '127.0.0.1',
-      5,
-      { verified: false },
-    );
+    expect(mockCheckTranslateUsageLimit).toHaveBeenCalledWith('127.0.0.1', 5, {
+      verified: false,
+    });
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(String(vi.mocked(fetch).mock.calls[0][0])).toContain(
       'api.cognitive.microsofttranslator.com/translate',
     );
     expect(mockSetRedisCachedJson).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the configured OpenAI-compatible LLM provider first', async () => {
+    vi.stubEnv('LLM_API_KEY', 'llm-test-key');
+    vi.stubEnv('LLM_BASE_URL', 'https://api.ppio.com/openai/');
+    vi.stubEnv('LLM_MODEL', 'deepseek/deepseek-v3-0324');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          choices: [
+            { message: { content: 'hello from llm' }, finish_reason: 'stop' },
+          ],
+        }),
+      }),
+    );
+
+    const response = await callPost({
+      text: 'こんにちは',
+      sourceLanguage: 'ja',
+      targetLanguage: 'en',
+    });
+
+    expect(response.status).toBe(200);
+    const data = (await response.json()) as {
+      translatedText: string;
+      provider: string;
+      detectedSourceLanguage: string;
+    };
+    expect(data.translatedText).toBe('hello from llm');
+    expect(data.provider).toBe('llm');
+    expect(data.detectedSourceLanguage).toBe('ja');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [url, options] = vi.mocked(fetch).mock.calls[0];
+    expect(String(url)).toBe('https://api.ppio.com/openai/v1/chat/completions');
+    expect((options as RequestInit).headers).toMatchObject({
+      Authorization: 'Bearer llm-test-key',
+    });
+    expect(JSON.parse(String((options as RequestInit).body))).toMatchObject({
+      model: 'deepseek/deepseek-v3-0324',
+      stream: false,
+    });
+  });
+
+  it('maps LLM rate-limit errors without exposing provider details', async () => {
+    vi.stubEnv('LLM_API_KEY', 'llm-test-key');
+    vi.stubEnv('LLM_BASE_URL', 'https://api.ppio.com/openai');
+    vi.stubEnv('LLM_MODEL', 'deepseek/deepseek-v3-0324');
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue({ ok: false, status: 429, json: async () => ({}) }),
+    );
+
+    const response = await callPost({
+      text: 'こんにちは',
+      sourceLanguage: 'ja',
+      targetLanguage: 'en',
+    });
+
+    expect(response.status).toBe(429);
+    const data = (await response.json()) as { message: string };
+    expect(data.message).toBe(
+      'Too many requests. Please wait a moment and try again.',
+    );
+  });
+
+  it('rejects incomplete LLM configuration instead of using another provider', async () => {
+    vi.stubEnv('LLM_API_KEY', 'llm-test-key');
+
+    const response = await callPost({
+      text: 'こんにちは',
+      sourceLanguage: 'ja',
+      targetLanguage: 'en',
+    });
+
+    expect(response.status).toBe(500);
+    const data = (await response.json()) as { code: string };
+    expect(data.code).toBe('AUTH_ERROR');
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it('falls back to Amazon Translate when Azure translation fails', async () => {
@@ -231,13 +315,11 @@ describe('POST /api/translate', () => {
     });
     vi.stubGlobal(
       'fetch',
-      vi
-        .fn()
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 503,
-          json: async () => ({}),
-        }),
+      vi.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({}),
+      }),
     );
 
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

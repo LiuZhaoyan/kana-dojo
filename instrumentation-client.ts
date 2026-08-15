@@ -2,14 +2,15 @@
 import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
-  dsn: 'https://a6f82883d78e424ee7b578556b78743d@o4511608063197184.ingest.us.sentry.io/4511608067981312',
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  enabled: Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN),
   // Performance rescue: Sentry Replay is intentionally disabled for now.
   // integrations: [Sentry.replayIntegration()],
   tracesSampleRate: 0.1,
-  enableLogs: true,
+  enableLogs: false,
   // replaysSessionSampleRate: 0.1,
   // replaysOnErrorSampleRate: 1.0,
-  sendDefaultPii: true,
+  sendDefaultPii: false,
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
