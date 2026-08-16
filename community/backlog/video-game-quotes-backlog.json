@@ -96,7 +96,7 @@
     "game": "Dragon Quest XI",
     "character": "Hero / party lines",
     "id": 10,
-    "issued": false,
+    "issued": true,
     "completed": false
   },
   {
@@ -526,7 +526,7 @@
     "game": "Final Fantasy Type-0",
     "character": "Class Zero",
     "id": 53,
-    "issued": false,
+    "issued": true,
     "completed": false
   },
   {
@@ -616,7 +616,7 @@
     "game": "Fate/stay night [Realta Nua]",
     "character": "Saber",
     "id": 62,
-    "issued": false,
+    "issued": true,
     "completed": false
   },
   {
@@ -1146,7 +1146,7 @@
     "game": "Fire Emblem series",
     "character": "Various protagonists",
     "id": 115,
-    "issued": false,
+    "issued": true,
     "completed": false
   },
   {

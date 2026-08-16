@@ -308,7 +308,7 @@
   {
     "id": 52,
     "fact": "Japan's Nakizumo festival has sumo wrestlers compete to make babies cry first - crying is believed to ward off evil spirits.",
-    "issued": false,
+    "issued": true,
     "completed": false
   },
   {
@@ -404,7 +404,7 @@
   {
     "id": 68,
     "fact": "Japan pioneered the concept of 'mukbang' content but calls it 'tabehoudai' (food challenge) which predates Korean streaming.",
-    "issued": false,
+    "issued": true,
     "completed": false
   },
   {
@@ -1250,7 +1250,7 @@
   {
     "id": 209,
     "fact": "The Japanese phrase 'ittekimasu' (行ってきます) is said when leaving home, meaning 'I'll go and come back'.",
-    "issued": false,
+    "issued": true,
     "completed": false
   },
   {
@@ -1580,7 +1580,7 @@
   {
     "id": 264,
     "fact": "The word 'kawaigaru' (可愛がる) means to dote on or cherish, often used for pets or younger relatives.",
-    "issued": false,
+    "issued": true,
     "completed": false
   },
   {

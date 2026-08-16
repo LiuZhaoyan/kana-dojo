@@ -420,7 +420,7 @@
     "english": "Even a packhorse driver looks good in fine clothes",
     "meaning": "Clothes make the person",
     "completed": false,
-    "issued": false
+    "issued": true
   },
   {
     "id": 48,
@@ -501,7 +501,7 @@
     "english": "A rice cake falls from the shelf",
     "meaning": "A windfall; unexpected good luck",
     "completed": false,
-    "issued": false
+    "issued": true
   },
   {
     "id": 57,
@@ -1176,7 +1176,7 @@
     "english": "Three years on a stone",
     "meaning": "Perseverance brings results",
     "completed": false,
-    "issued": false
+    "issued": true
   },
   {
     "id": 132,
@@ -1500,7 +1500,7 @@
     "english": "Chase two rabbits, catch none",
     "meaning": "Focus on one thing",
     "completed": false,
-    "issued": false
+    "issued": true
   },
   {
     "id": 168,
